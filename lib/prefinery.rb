@@ -1,7 +1,7 @@
 # Ruby lib for working with the Prefinery API's XML interface.
 #
 # You should have something like this in config/initializers/prefinery.rb.
-# 
+#
 #   Prefinery.configure do |config|
 #     config.subdomain = 'compulsivo'
 #     config.secure = false
@@ -13,9 +13,12 @@
 # http://app.prefinery.com/api
 #
 
-require 'rubygems'
-require 'activesupport'
-require 'activeresource'
+
+if Rails::VERSION::STRING < '3.0.0'
+  require 'rubygems'
+  require 'activesupport'
+  require 'activeresource'
+end
 
 module Prefinery
 
@@ -30,15 +33,15 @@ module Prefinery
         klass.password = "X"
       end
     end
-    
+
     def subdomain
       @subdomain
     end
-    
+
     def host
       @host ||= "#{subdomain}.prefinery.com"
     end
-    
+
     def port
       @port || (secure ? 443 : 80)
     end
@@ -46,7 +49,7 @@ module Prefinery
     def api_key
       @api_key
     end
-    
+
     def protocol
       secure ? "https" : "http"
     end
@@ -54,14 +57,14 @@ module Prefinery
     def url
       URI.parse("#{protocol}://#{host}:#{port}")
     end
-    
+
     def resources
       @resources ||= []
     end
-    
+
   end
   self.host_format   = '%s://%s:%s/api/v1'
-  
+
   class Base < ActiveResource::Base
     def self.inherited(base)
       Prefinery.resources << base
@@ -72,7 +75,7 @@ module Prefinery
       super
     end
   end
-  
+
   # List betas
   #
   #  Prefinery::Beta.find(:all)
@@ -94,7 +97,7 @@ module Prefinery
       Tester.find(:all, :params => options.update(:beta_id => id))
     end
   end
-  
+
   # List testers
   #
   #  Prefinery::Tester.find(:all, :params => { :beta_id => 74 })
@@ -130,11 +133,11 @@ module Prefinery
   #  tester.checkin
   class Tester < Base
     site_format << '/betas/:beta_id'
-    
+
     def profile=(profile_attributes)
       attributes['profile'] = profile_attributes
     end
-    
+
     def verified?(invitation_code)
       begin
         get(:verify, :invitation_code => invitation_code)
@@ -143,7 +146,7 @@ module Prefinery
         false
       end
     end
-    
+
     def checkin
       begin
         post(:checkin)
@@ -152,14 +155,14 @@ module Prefinery
         false
       end
     end
-    
+
   end
-  
+
   # Check-in a tester by email address
   #
   #  Prefinery::Checkin.create(:beta_id => 74, :email => 'justin@prefinery.com')
   class Checkin < Base
     site_format << '/betas/:beta_id'
   end
-  
+
 end
